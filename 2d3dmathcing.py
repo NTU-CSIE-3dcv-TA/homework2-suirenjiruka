@@ -266,6 +266,7 @@ def painter(img, r, t):
                             np.ones([1, cube_point.shape[0]])
                             ], axis=0)).transpose()
     cube_point_pair = []
+    #排序point
     for p, c in zip(cube_point, colors):
         dis = math.sqrt(np.sum((p - camera_pos) ** 2))
         cube_point_pair.append((p, c, dis))
