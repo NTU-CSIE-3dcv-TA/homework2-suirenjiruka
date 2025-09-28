@@ -30,19 +30,26 @@ def get_transform_mat(rotation, translation, scale):
     return transform_mat
 
 def update_cube():
-    global cube, cube_vertices, R_euler, t, scale
+    global cube, cube_set, cube_point, cube_vertices, R_euler, t, scale
     
     transform_mat = get_transform_mat(R_euler, t, scale)
+    print(R_euler, t, scale)
     
-    transform_vertices = (transform_mat @ np.concatenate([
-                            cube_vertices.transpose(), 
-                            np.ones([1, cube_vertices.shape[0]])
+    #transform_vertices = (transform_mat @ np.concatenate([
+    #                        cube_vertices.transpose(), 
+    #                        np.ones([1, cube_vertices.shape[0]])
+    #                        ], axis=0)).transpose()
+    cube_transform = (transform_mat @ np.concatenate([
+                            cube_point.transpose(), 
+                            np.ones([1, cube_point.shape[0]])
                             ], axis=0)).transpose()
 
-    cube.vertices = o3d.utility.Vector3dVector(transform_vertices)
-    cube.compute_vertex_normals()
-    cube.paint_uniform_color([1, 0.706, 0])
-    vis.update_geometry(cube)
+    #cube.vertices = o3d.utility.Vector3dVector(transform_vertices)
+    #cube.compute_vertex_normals()
+    #cube.paint_uniform_color([1, 0.706, 0])
+    cube_set.points = o3d.utility.Vector3dVector(cube_transform)
+    #vis.update_geometry(cube)
+    vis.update_geometry(cube_set)
 
 def toggle_key_shift(vis, action, mods):
     global shift_pressed
@@ -106,10 +113,35 @@ vis.add_geometry(axes)
 # load cube
 cube = o3d.geometry.TriangleMesh.create_box(width=1.0, height=1.0, depth=1.0)
 cube_vertices = np.asarray(cube.vertices).copy()
-vis.add_geometry(cube)
+#vis.add_geometry(cube)
 
 R_euler = np.array([0, 0, 0]).astype(float)
 t = np.array([0, 0, 0]).astype(float)
+cube_point = []
+colors = []
+for x in np.arange (0, 1.1, 0.1):
+    for y in np.arange (0, 1.1, 0.1):
+        for z in np.arange (0, 1.1, 0.1):
+            if (x == 1 or y == 1 or z == 1 or x == 0 or y == 0 or z == 0):
+                cube_point.append([x, y, z])
+                if x == 0:
+                    colors.append([1,0,0])
+                elif y == 0:
+                    colors.append([0.1,1,0.2])
+                elif y == 1:
+                    colors.append([0.6,0.1,0.8])
+                elif z == 0:
+                    colors.append([0.8,0.9,0.2])
+                elif z == 1:
+                    colors.append([0.3,0.9,0.9])
+                else:
+                    colors.append([0,0,1])
+
+cube_point = np.array(cube_point)
+colors = np.array(colors)
+cube_set = o3d.geometry.PointCloud(points=o3d.utility.Vector3dVector(cube_point))
+cube_set.colors = o3d.utility.Vector3dVector(colors)
+vis.add_geometry(cube_set)
 scale = 1.0
 update_cube()
 
